@@ -21,6 +21,7 @@ public class ColaboradorController {
 
   private final Fachada fachada;
   private final Counter colaboradoresCounter;
+  private final Counter colaboradoresModificadosCounter;
   private PrometheusMeterRegistry registry;
 
   public ColaboradorController(Fachada fachada, PrometheusMeterRegistry registry) {
@@ -34,6 +35,10 @@ public class ColaboradorController {
 
     this.colaboradoresCounter = Counter.builder("colaboradores_agregados")
             .description("Cantidad de colaboradores agregados")
+            .register(this.registry);
+
+    this.colaboradoresModificadosCounter = Counter.builder("colaboradores_modificados")
+            .description("Cantidad de colaboradores modificados")
             .register(this.registry);
   }
 
@@ -61,6 +66,10 @@ public class ColaboradorController {
 
     try{
       var colaboradorDTO = this.fachada.modificar(id, formas);
+
+      colaboradoresModificadosCounter.increment();
+      registry.config().commonTags("app", "metrics-colaborador");
+      
       context.json(colaboradorDTO);
     } catch (NoSuchElementException ex) {
       context.result(ex.getLocalizedMessage());
