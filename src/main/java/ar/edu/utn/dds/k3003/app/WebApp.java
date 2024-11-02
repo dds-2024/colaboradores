@@ -85,7 +85,10 @@ public class WebApp {
     app.get("/colaboradores/{colaboradorId}", colaboradorController::obtener);
     app.patch("/colaboradores/{colaboradorId}",colaboradorController::modificar);
     app.get("/colaboradores/{colaboradorId}/puntos",colaboradorController::puntos);
+    app.put("/colaboradores/{colaboradorId}/formula",colaboradorController::actualizarPesosPuntos);
     app.put("/formula",colaboradorController::actualizarPesosPuntos);
+    app.post("/colaboradores/{colaboradorId}/donar", colaboradorController::recibirDonacion);
+
     app.get("/metrics",
             ctx -> {
               // chequear el header de authorization y chequear el token bearer

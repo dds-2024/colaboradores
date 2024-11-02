@@ -1,5 +1,9 @@
 package ar.edu.utn.dds.k3003.model;
 
+import ar.edu.utn.dds.k3003.model.FormaDeColaborar.Donador;
+import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborar;
+import ar.edu.utn.dds.k3003.model.FormaDeColaborar.TipoFormaColaborar;
+
 public class CoeficientesPuntos {
   private double pesosDonados;
   private double viandasDistribuidas;
@@ -32,28 +36,6 @@ public class CoeficientesPuntos {
         return tarjetasRepartidas;
       case HELADERAS_ACTIVAS:
         return heladerasActivas;
-      default:
-        throw new IllegalArgumentException("Tipo de coeficiente no válido: " + tipo);
-    }
-  }
-
-  public void setValor(TipoCoeficiente tipo, double valor) {
-    switch (tipo) {
-      case PESOS_DONADOS:
-        this.pesosDonados = valor;
-        break;
-      case VIANDAS_DISTRIBUIDAS:
-        this.viandasDistribuidas = valor;
-        break;
-      case VIANDAS_DONADAS:
-        this.viandasDonadas = valor;
-        break;
-      case TARJETAS_REPARTIDAS:
-        this.tarjetasRepartidas = valor;
-        break;
-      case HELADERAS_ACTIVAS:
-        this.heladerasActivas = valor;
-        break;
       default:
         throw new IllegalArgumentException("Tipo de coeficiente no válido: " + tipo);
     }

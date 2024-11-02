@@ -9,6 +9,13 @@ import ar.edu.utn.dds.k3003.facades.dtos.TrasladoDTO;
 import ar.edu.utn.dds.k3003.facades.dtos.ViandaDTO;
 import ar.edu.utn.dds.k3003.model.CoeficientesPuntos;
 import ar.edu.utn.dds.k3003.model.Colaborador;
+import ar.edu.utn.dds.k3003.model.DTOs.ColaboradorDto;
+import ar.edu.utn.dds.k3003.model.DTOs.DonacionDto;
+import ar.edu.utn.dds.k3003.model.Donacion;
+import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborar;
+import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborarConverter;
+import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborarUtil;
+import ar.edu.utn.dds.k3003.model.FormaDeColaborar.TipoFormaColaborar;
 import ar.edu.utn.dds.k3003.model.TipoCoeficiente;
 import ar.edu.utn.dds.k3003.repositories.ColaboradorMapper;
 import ar.edu.utn.dds.k3003.repositories.ColaboradorRepository;
@@ -24,11 +31,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaColaboradores {
+public class Fachada {
   @Getter
   private ColaboradorRepository colaboradorRepository;
   private ColaboradorMapper colaboradorMapper;
-  private CoeficientesPuntos coeficientesPuntos = new CoeficientesPuntos(0.5,1,1.5,2.5,5);
   private FachadaViandas fachadaViandas;
   private FachadaLogistica fachadaLogistica;
   private EntityManagerFactory entityManagerFactory;
@@ -51,58 +57,86 @@ public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaColaboradore
   }
 
 
-  @Override
-  public ColaboradorDTO agregar(ColaboradorDTO colaboradorDTO) {
-    Colaborador colaborador = new Colaborador(colaboradorDTO.getId(),colaboradorDTO.getNombre(),colaboradorDTO.getFormas());
+  public ColaboradorDto agregar(ColaboradorDto colaboradorDTO) {
+    Colaborador colaborador = new Colaborador(colaboradorDTO.getId(),colaboradorDTO.getNombre(),colaboradorDTO.getFormas(),new ArrayList<>(),0L,0L,0L);
     colaborador = this.colaboradorRepository.save(colaborador);
     return colaboradorMapper.map(colaborador);
   }
 
-  @Override
-  public ColaboradorDTO buscarXId(Long colaboradorId) throws NoSuchElementException {
+  public ColaboradorDto buscarXId(Long colaboradorId) throws NoSuchElementException {
     Colaborador colaborador = this.colaboradorRepository.findById(colaboradorId);
     return colaboradorMapper.map(colaborador);
   }
 
 
-  @Override
-  public Double puntos(Long colaboradorId) throws NoSuchElementException {
-    Integer mesActual = 1; //;
-    Integer anioActual = 2024;//LocalDate.now().getYear();
+  public Double puntos(Long colaboradorId,Integer mes, Integer anio) throws NoSuchElementException {
 
-    List<ViandaDTO> viandasDTO = fachadaViandas.viandasDeColaborador(colaboradorId,mesActual,anioActual);
+    Colaborador colaborador = this.colaboradorRepository.findById(colaboradorId);
+
+    List<ViandaDTO> viandasDTO = fachadaViandas.viandasDeColaborador(colaboradorId,mes,anio);
     Integer viandasDonadas = viandasDTO.size();
-    List<TrasladoDTO> trasladosDTO = fachadaLogistica.trasladosDeColaborador(colaboradorId,mesActual,anioActual);
-    Integer traslados = trasladosDTO.size();
+    colaborador.setViandasRepartidas(viandasDonadas.longValue());
 
-    return
-        coeficientesPuntos.getValor(TipoCoeficiente.VIANDAS_DONADAS) * viandasDonadas +
-            coeficientesPuntos.getValor(TipoCoeficiente.VIANDAS_DISTRIBUIDAS) * traslados;
+    List<TrasladoDTO> trasladosDTO = fachadaLogistica.trasladosDeColaborador(colaboradorId,mes,anio);
+    Integer traslados = trasladosDTO.size();
+    colaborador.setViandasRepartidas(traslados.longValue());
+
+    return colaborador.calcularPuntajeTotal();
   }
 
-  @Override
-  public ColaboradorDTO modificar(Long colaboradorId, List<FormaDeColaborarEnum> formas) throws NoSuchElementException {
+  public ColaboradorDto modificar(Long colaboradorId, List<TipoFormaColaborar> formas) throws NoSuchElementException {
     // Buscar el colaborador por ID
     Colaborador colaborador = this.colaboradorRepository.findById(colaboradorId);
-    colaboradorRepository.update(colaborador,formas);
-    // Mapear y devolver el colaborador actualizado como DTO
+    List<FormaDeColaborar> formaDeColaborar = FormaDeColaborarUtil.convertToFormaColaborarList(formas);
+    colaboradorRepository.update(colaborador,formaDeColaborar);
     return colaboradorMapper.map(colaborador);
   }
-  @Override
-  public void actualizarPesosPuntos(Double pesosDonados, Double viandasDistribuidas, Double viandasDonadas, Double tarjetasRepartidas, Double heladerasActivas) {
-    coeficientesPuntos.setValor(TipoCoeficiente.PESOS_DONADOS, pesosDonados);
-    coeficientesPuntos.setValor(TipoCoeficiente.VIANDAS_DISTRIBUIDAS, viandasDistribuidas);
-    coeficientesPuntos.setValor(TipoCoeficiente.VIANDAS_DONADAS, viandasDonadas);
-    coeficientesPuntos.setValor(TipoCoeficiente.TARJETAS_REPARTIDAS, tarjetasRepartidas);
-    coeficientesPuntos.setValor(TipoCoeficiente.HELADERAS_ACTIVAS, heladerasActivas);
+
+  public ColaboradorDto agregarDonacion(Long colaboradorId, DonacionDto donacionDto) throws NoSuchElementException {
+    Colaborador colaborador = this.colaboradorRepository.findById(colaboradorId);
+    Donacion donacion = colaboradorMapper.mapDonacion(donacionDto);
+    colaboradorRepository.agregarDonacion(colaborador,donacion);
+    return colaboradorMapper.map(colaborador);
   }
 
-  @Override
+  public void actualizarPesosPuntos(Long colaboradorId,
+                                    Double pesosDonados,
+                                    Double viandasDistribuidas,
+                                    Double viandasDonadas,
+                                    Double heladerasReparadas) {
+
+    Colaborador colaborador = this.colaboradorRepository.findById(colaboradorId);
+
+    var formas = colaborador.getFormas();
+
+    for (FormaDeColaborar forma : formas) {
+
+      TipoFormaColaborar tipoForma = FormaDeColaborarUtil.convertToTipoFormaColaborar(forma);
+
+      switch (tipoForma) {
+        case DONADOR:
+          forma.setPesoPuntaje(viandasDonadas);
+          break;
+        case DONADORPESOS:
+          forma.setPesoPuntaje(pesosDonados);
+          break;
+        case TRANSPORTADOR:
+          forma.setPesoPuntaje(viandasDistribuidas);
+          break;
+        case TECNICO:
+          forma.setPesoPuntaje(heladerasReparadas);
+          break;
+        default:
+          throw new IllegalArgumentException("Forma de Colaborar desconocida: " + tipoForma);
+      }
+    }
+    this.colaboradorRepository.save(colaborador);
+  }
+
   public void setLogisticaProxy(FachadaLogistica fachadaLogistica) {
     this.fachadaLogistica = fachadaLogistica;
   }
 
-  @Override
   public void setViandasProxy(FachadaViandas fachadaViandas) {
     this.fachadaViandas = fachadaViandas;
   }

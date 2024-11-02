@@ -1,24 +1,17 @@
 package ar.edu.utn.dds.k3003.model;
 
 import ar.edu.utn.dds.k3003.facades.dtos.FormaDeColaborarEnum;
+import ar.edu.utn.dds.k3003.model.DTOs.DonacionDto;
+import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborar;
+import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborarConverter;
+import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborarUtil;
+import ar.edu.utn.dds.k3003.model.FormaDeColaborar.TipoFormaColaborar;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.PreRemove;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,16 +33,45 @@ public class Colaborador {
   @Column(name = "nombre")
   private String nombre;
 
-  @ElementCollection(targetClass = FormaDeColaborarEnum.class, fetch = FetchType.EAGER)
+  @Convert(converter = FormaDeColaborarConverter.class) // Usar el convertidor
+  @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "colaborador_formas", joinColumns = @JoinColumn(name = "colaborador_id"))
-  @Enumerated(EnumType.STRING)
-  @Column(name = "forma", nullable = false)
-  private List<FormaDeColaborarEnum> formas = new ArrayList<>();
+  private List<FormaDeColaborar> formas = new ArrayList<>();
+
+  @ElementCollection(targetClass = Donacion.class, fetch = FetchType.EAGER)
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY) // Agregar cascade
+  @JoinColumn(name = "colaborador_id")
+  private List<Donacion> donaciones = new ArrayList<>();
+
+  @Column
+  private Long heladerasReparadas;
+
+  @Transient
+  private  Long viandasRepartidas;
+
+  @Transient
+  private  Long viandasTransportadas;
+
 
   @PreRemove
   private void preRemove() {
     this.formas.clear();
   }
 
+  public double totalDonaciones() {
+    double total = 0;
+    if (donaciones != null) {
+      for (Donacion donacion : donaciones) {
+        total += donacion.getMonto();
+      }
+    }
+    return total;
+  }
 
+
+  public double calcularPuntajeTotal() {
+    return this.getFormas().stream()
+            .mapToDouble(forma -> forma.calcularPuntos(this))
+            .sum();
+  }
 }
