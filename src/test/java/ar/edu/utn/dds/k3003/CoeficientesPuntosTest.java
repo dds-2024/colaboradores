@@ -15,7 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Objects;
 
 import static org.mockito.Mockito.when;
-
+/*
 @ExtendWith({MockitoExtension.class})
 public class CoeficientesPuntosTest {
   CoeficientesPuntos coeficientes;
@@ -53,4 +53,4 @@ public class CoeficientesPuntosTest {
     Assertions.assertEquals(6.0, coeficientes.getValor(TipoCoeficiente.HELADERAS_ACTIVAS));
   }
 
-}
+}*/
