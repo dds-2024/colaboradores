@@ -61,6 +61,12 @@ public class ColaboradorRepository {
     entityManager.getTransaction().commit();
   }
 
+  public void añadirReparoHeladera(Colaborador colaborador,  Long heladerasReparadas) {
+    entityManager.getTransaction().begin();
+    colaborador.setHeladerasReparadas(heladerasReparadas);
+    entityManager.getTransaction().commit();
+  }
+
   public void agregarDonacion(Colaborador colaborador, Donacion donacion){
     entityManager.getTransaction().begin();
 

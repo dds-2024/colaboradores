@@ -6,6 +6,7 @@ import ar.edu.utn.dds.k3003.facades.dtos.FormaDeColaborarEnum;
 import ar.edu.utn.dds.k3003.model.DTOs.ColaboradorDto;
 import ar.edu.utn.dds.k3003.model.DTOs.DonacionDto;
 import ar.edu.utn.dds.k3003.model.FormaDeColaborar.TipoFormaColaborar;
+import ar.edu.utn.dds.k3003.model.Incidentes.SuscripcionDTO;
 import ar.edu.utn.dds.k3003.model.TipoCoeficiente;
 import ar.edu.utn.dds.k3003.model.UpdateFormasColaborarRequest;
 import ar.edu.utn.dds.k3003.model.UpdatePesosPuntosRequest;
@@ -117,7 +118,6 @@ public class ColaboradorController {
       double pesosDonados = context.bodyAsClass(UpdatePesosPuntosRequest.class).getPesosDonados();
       double viandasDistribuidas = context.bodyAsClass(UpdatePesosPuntosRequest.class).getViandasDistribuidas();
       double viandasDonadas = context.bodyAsClass(UpdatePesosPuntosRequest.class).getViandasDonadas();
-      double tarjetasRepartidas = context.bodyAsClass(UpdatePesosPuntosRequest.class).getTarjetasRepartidas();
       double heladerasActivas = context.bodyAsClass(UpdatePesosPuntosRequest.class).getHeladerasActivas();
 
       // Actualizar los coeficientes de puntos
@@ -137,6 +137,18 @@ public class ColaboradorController {
     }
   }
 
+  public void gestionarIncidente(Context context){
+    var notificacionIncidente = context.bodyAsClass(SuscripcionDTO.class);
+    try {
+      fachada.notificarIncidente(notificacionIncidente);
+      context.status(HttpStatus.OK);
+      context.result("Se reportó correctamente el incidente");
+    } catch (NoSuchElementException ex) {
+      context.result("No se pudo reportar el incidente");
+      context.status(HttpStatus.NOT_ACCEPTABLE);
+    }
+  }
+
   public void recibirDonacion(Context context) {
     try {
       var id = context.pathParamAsClass("colaboradorId", Long.class).get();
@@ -149,4 +161,30 @@ public class ColaboradorController {
       context.status(HttpStatus.BAD_REQUEST);
     }
   }
+
+  public void repararHeladera(Context context){
+    var colaboradorId = context.pathParamAsClass("colaboradorId", Long.class).get();
+    var heladeraId = context.pathParamAsClass("heladeraId", Long.class).get();
+    try{
+      fachada.repararHeladera(colaboradorId, heladeraId);
+      context.status(HttpStatus.OK);
+      context.result("Reparación exitosa");
+    } catch (NoSuchElementException ex) {
+      context.result("Error al reparar la heladera"); //ex.getLocalizedMessage());
+      context.status(HttpStatus.NOT_ACCEPTABLE);
+    }
+  }
+
+  public void suscripcionHeladera(Context context){
+    var suscripcionDto = context.bodyAsClass(SuscripcionDTO.class);
+
+    try {
+            fachada.suscripcionHeladera(suscripcionDto);
+            context.status(HttpStatus.OK);
+            context.result("El colaborador " + suscripcionDto.getColaboradorId() + " se ha suscripto correctamente a la heladera " + suscripcionDto.getHeladeraId());
+        } catch (NoSuchElementException ex) {
+            context.result("No se suscribir a la heladera"); //ex.getLocalizedMessage());
+            context.status(HttpStatus.NOT_ACCEPTABLE);
+        }
+    }
 }

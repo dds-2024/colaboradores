@@ -1,9 +1,9 @@
 package ar.edu.utn.dds.k3003.model.DTOs;
 
 import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborar;
-import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborarFactory;
 import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborarUtil;
 import ar.edu.utn.dds.k3003.model.FormaDeColaborar.TipoFormaColaborar;
+import ar.edu.utn.dds.k3003.model.Serializer.ColaboradorDtoDeserializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -19,8 +19,6 @@ import java.util.List;
 public class ColaboradorDto {
     private Long id;
     private String nombre;
-    private Long minimoViandas;
-    private Long maximoViandas;
     private List<FormaDeColaborar> formas;
     private List<DonacionDto> donaciones;
     private Long heladerasReparadas;
@@ -42,10 +40,6 @@ public class ColaboradorDto {
         if (donacion != null) {
             this.donaciones.add(donacion);
         }
-    }
-
-    public void informarArregloHeladera(){
-        this.heladerasReparadas++;
     }
 
     public void agregarDonaciones(List<DonacionDto> donaciones) {

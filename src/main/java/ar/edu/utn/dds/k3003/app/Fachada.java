@@ -1,5 +1,7 @@
 package ar.edu.utn.dds.k3003.app;
 
+import ar.edu.utn.dds.k3003.clients.HeladerasProxy;
+import ar.edu.utn.dds.k3003.facades.FachadaHeladeras;
 import ar.edu.utn.dds.k3003.facades.FachadaLogistica;
 import ar.edu.utn.dds.k3003.facades.FachadaViandas;
 import ar.edu.utn.dds.k3003.facades.dtos.ColaboradorDTO;
@@ -12,10 +14,10 @@ import ar.edu.utn.dds.k3003.model.Colaborador;
 import ar.edu.utn.dds.k3003.model.DTOs.ColaboradorDto;
 import ar.edu.utn.dds.k3003.model.DTOs.DonacionDto;
 import ar.edu.utn.dds.k3003.model.Donacion;
-import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborar;
-import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborarConverter;
-import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborarUtil;
-import ar.edu.utn.dds.k3003.model.FormaDeColaborar.TipoFormaColaborar;
+import ar.edu.utn.dds.k3003.model.FormaDeColaborar.*;
+import ar.edu.utn.dds.k3003.model.Incidentes.Incidente;
+import ar.edu.utn.dds.k3003.model.Incidentes.NotificadorIncidentes;
+import ar.edu.utn.dds.k3003.model.Incidentes.SuscripcionDTO;
 import ar.edu.utn.dds.k3003.model.TipoCoeficiente;
 import ar.edu.utn.dds.k3003.repositories.ColaboradorMapper;
 import ar.edu.utn.dds.k3003.repositories.ColaboradorRepository;
@@ -37,8 +39,10 @@ public class Fachada {
   private ColaboradorMapper colaboradorMapper;
   private FachadaViandas fachadaViandas;
   private FachadaLogistica fachadaLogistica;
+  private HeladerasProxy fachadaHeladeras;
   private EntityManagerFactory entityManagerFactory;
   private EntityManager entityManager;
+  public NotificadorIncidentes notificador;
 
   public Fachada() {
     this.entityManagerFactory = Persistence.createEntityManagerFactory("bd_colaboradores_f5t3");
@@ -46,14 +50,16 @@ public class Fachada {
     this.colaboradorRepository = new ColaboradorRepository();
     this.colaboradorRepository.setEntityManager(entityManager);
     this.colaboradorMapper = new ColaboradorMapper();
+    this.notificador = new NotificadorIncidentes();
   }
 
-  public Fachada(ColaboradorRepository _colaboradorRepository, ColaboradorMapper _colaboradorMapper, EntityManagerFactory entityManagerFactory) {
+  public Fachada(ColaboradorRepository _colaboradorRepository, ColaboradorMapper _colaboradorMapper, EntityManagerFactory entityManagerFactory, NotificadorIncidentes _notificador) {
     this.entityManagerFactory = entityManagerFactory;
     this.colaboradorRepository = _colaboradorRepository;
     colaboradorRepository.setEntityManagerFactory(entityManagerFactory);
     colaboradorRepository.setEntityManager(entityManagerFactory.createEntityManager());
     this.colaboradorMapper = _colaboradorMapper;
+    this.notificador = _notificador;
   }
 
 
@@ -68,6 +74,11 @@ public class Fachada {
     return colaboradorMapper.map(colaborador);
   }
 
+  public void notificarIncidente(SuscripcionDTO notificacionIncidente){
+    Incidente incidente = new Incidente(Long.valueOf(notificacionIncidente.getHeladeraId()),notificacionIncidente.getTipoSuscripcion());
+    Colaborador colaborador = this.colaboradorRepository.findById(notificacionIncidente.getColaboradorId().longValue());
+    notificador.notificar(incidente,colaboradorMapper.map(colaborador));
+  }
 
   public Double puntos(Long colaboradorId,Integer mes, Integer anio) throws NoSuchElementException {
 
@@ -133,11 +144,36 @@ public class Fachada {
     this.colaboradorRepository.save(colaborador);
   }
 
+  public void repararHeladera(Long colaboradorId, Long heladeraId) {
+    Colaborador colaborador = this.colaboradorRepository.findById(colaboradorId);
+
+    // Verificar si el colaborador tiene la forma de colaborar de tipo Tecnico
+    boolean esTecnico = colaborador.getFormas().stream()
+            .anyMatch(forma -> forma instanceof Tecnico);
+
+    if (esTecnico) {
+      // Informar a heladeras
+      // Persistir en BD
+      colaboradorRepository.añadirReparoHeladera(colaborador, colaborador.getHeladerasReparadas() + 1);
+    } else {
+      throw new NoSuchElementException("El colaborador debe tener Tecnico en sus formas de colaborar ");
+    }
+  }
+
+   public void suscripcionHeladera(SuscripcionDTO suscripcion){
+        fachadaHeladeras.suscribir(suscripcion);
+  }
+
+
   public void setLogisticaProxy(FachadaLogistica fachadaLogistica) {
     this.fachadaLogistica = fachadaLogistica;
   }
 
   public void setViandasProxy(FachadaViandas fachadaViandas) {
     this.fachadaViandas = fachadaViandas;
+  }
+
+  public void setHeladerasProxy(HeladerasProxy fachadaHeladeras) {
+    this.fachadaHeladeras = fachadaHeladeras;
   }
 }

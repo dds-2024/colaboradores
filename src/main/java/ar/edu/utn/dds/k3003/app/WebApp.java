@@ -1,9 +1,11 @@
 package ar.edu.utn.dds.k3003.app;
 
+import ar.edu.utn.dds.k3003.clients.HeladerasProxy;
 import ar.edu.utn.dds.k3003.clients.LogisticaProxy;
 import ar.edu.utn.dds.k3003.clients.ViandasProxy;
 import ar.edu.utn.dds.k3003.controller.ColaboradorController;
 import ar.edu.utn.dds.k3003.facades.dtos.Constants;
+import ar.edu.utn.dds.k3003.model.Incidentes.NotificadorIncidentes;
 import ar.edu.utn.dds.k3003.repositories.ColaboradorMapper;
 import ar.edu.utn.dds.k3003.repositories.ColaboradorRepository;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -59,11 +61,13 @@ public class WebApp {
     EntityManagerFactory entityManagerFactory = startEntityManagerFactory();
     colaboradoresRepository.setEntityManagerFactory(entityManagerFactory);
     ColaboradorMapper colaboradorMapper = new ColaboradorMapper();
+    NotificadorIncidentes notificadorIncidentes = new NotificadorIncidentes();
 
-    var fachada = new Fachada(colaboradoresRepository,colaboradorMapper,entityManagerFactory);
+    var fachada = new Fachada(colaboradoresRepository,colaboradorMapper,entityManagerFactory,notificadorIncidentes);
 
     var objectMapper = createObjectMapper();
     fachada.setViandasProxy(new ViandasProxy(objectMapper));
+    fachada.setHeladerasProxy(new HeladerasProxy(objectMapper));
     fachada.setLogisticaProxy(new LogisticaProxy(objectMapper));
 
     var port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
@@ -88,6 +92,9 @@ public class WebApp {
     app.put("/colaboradores/{colaboradorId}/formula",colaboradorController::actualizarPesosPuntos);
     app.put("/formula",colaboradorController::actualizarPesosPuntos);
     app.post("/colaboradores/{colaboradorId}/donar", colaboradorController::recibirDonacion);
+    app.put("/colaboradores/{colaboradorId}/repararHeladera/{heladeraId}",colaboradorController::repararHeladera); //ok
+    app.post("/colaboradores/gestionarIncidente", colaboradorController::gestionarIncidente);
+    app.post("/colaboradores/suscripcionHeladera",colaboradorController::suscripcionHeladera);//ok
 
     app.get("/metrics",
             ctx -> {

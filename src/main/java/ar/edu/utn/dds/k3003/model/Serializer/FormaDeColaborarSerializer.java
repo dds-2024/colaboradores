@@ -1,4 +1,4 @@
-package ar.edu.utn.dds.k3003.model.DTOs;
+package ar.edu.utn.dds.k3003.model.Serializer;
 
 import ar.edu.utn.dds.k3003.model.FormaDeColaborar.FormaDeColaborar;
 import com.fasterxml.jackson.core.JsonGenerator;

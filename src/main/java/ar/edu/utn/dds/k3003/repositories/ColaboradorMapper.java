@@ -38,6 +38,7 @@ public class ColaboradorMapper {
       colaboradorDTO.agregarDonaciones(donacionDTOs);
     }
     colaboradorDTO.setId(colaborador.getId());
+    colaboradorDTO.setHeladerasReparadas(colaborador.getHeladerasReparadas());
     return colaboradorDTO;
   }
 
