@@ -17,7 +17,7 @@ http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd" version="2.2">
 
             <!-- Creación de tablas -->
             <property name="hibernate.flushMode" value="FLUSH_AUTO" />
-            <property name="hibernate.hbm2ddl.auto" value="create" />
+            <property name="hibernate.hbm2ddl.auto" value="update" />
 
             <!-- Mostrar las sentencias de SQL por consola -->
             <property name="hibernate.show_sql" value="true" />
