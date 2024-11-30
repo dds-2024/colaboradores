@@ -30,6 +30,9 @@ public class Colaborador {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @Column(name = "chat_id")
+  private Long chat_id;
+
   @Column(name = "nombre")
   private String nombre;
 

@@ -21,6 +21,7 @@ public class ColaboradorDtoDeserializer extends JsonDeserializer<ColaboradorDto>
         // Leer el objeto JSON
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
         String nombre = node.get("nombre").asText();
+        Long chat_id = node.get("chat_id").asLong();
 
         // Procesar las formas
         List<TipoFormaColaborar> formas = new ArrayList<>();
@@ -33,6 +34,6 @@ public class ColaboradorDtoDeserializer extends JsonDeserializer<ColaboradorDto>
         }
 
         // Crear y devolver el DTO
-        return new ColaboradorDto(nombre, formas);
+        return new ColaboradorDto(nombre, chat_id, formas);
     }
 }

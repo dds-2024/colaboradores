@@ -2,6 +2,7 @@ package ar.edu.utn.dds.k3003.app;
 
 import ar.edu.utn.dds.k3003.clients.HeladerasProxy;
 import ar.edu.utn.dds.k3003.clients.LogisticaProxy;
+import ar.edu.utn.dds.k3003.clients.TelegramNotificacionProxy;
 import ar.edu.utn.dds.k3003.clients.ViandasProxy;
 import ar.edu.utn.dds.k3003.controller.ColaboradorController;
 import ar.edu.utn.dds.k3003.facades.dtos.Constants;
@@ -69,8 +70,9 @@ public class WebApp {
     fachada.setViandasProxy(new ViandasProxy(objectMapper));
     fachada.setHeladerasProxy(new HeladerasProxy(objectMapper));
     fachada.setLogisticaProxy(new LogisticaProxy(objectMapper));
+    fachada.setTelegramNotificacionProxy(new TelegramNotificacionProxy(objectMapper));
 
-    var port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+    var port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8082"));
 
     /*var app = Javalin.create(config -> {
       config.jsonMapper(new JavalinJackson().updateMapper(mapper -> {

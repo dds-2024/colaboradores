@@ -1,6 +1,7 @@
 package ar.edu.utn.dds.k3003.app;
 
 import ar.edu.utn.dds.k3003.clients.HeladerasProxy;
+import ar.edu.utn.dds.k3003.clients.TelegramNotificacionProxy;
 import ar.edu.utn.dds.k3003.facades.FachadaHeladeras;
 import ar.edu.utn.dds.k3003.facades.FachadaLogistica;
 import ar.edu.utn.dds.k3003.facades.FachadaViandas;
@@ -40,6 +41,7 @@ public class Fachada {
   private FachadaViandas fachadaViandas;
   private FachadaLogistica fachadaLogistica;
   private HeladerasProxy fachadaHeladeras;
+  private TelegramNotificacionProxy fachadaTelegram;
   private EntityManagerFactory entityManagerFactory;
   private EntityManager entityManager;
   public NotificadorIncidentes notificador;
@@ -64,7 +66,7 @@ public class Fachada {
 
 
   public ColaboradorDto agregar(ColaboradorDto colaboradorDTO) {
-    Colaborador colaborador = new Colaborador(colaboradorDTO.getId(),colaboradorDTO.getNombre(),colaboradorDTO.getFormas(),new ArrayList<>(),0L,0L,0L);
+    Colaborador colaborador = new Colaborador(colaboradorDTO.getId(),colaboradorDTO.getChat_id(),colaboradorDTO.getNombre(),colaboradorDTO.getFormas(),new ArrayList<>(),0L,0L,0L);
     colaborador = this.colaboradorRepository.save(colaborador);
     return colaboradorMapper.map(colaborador);
   }
@@ -77,7 +79,15 @@ public class Fachada {
   public void notificarIncidente(SuscripcionDTO notificacionIncidente){
     Incidente incidente = new Incidente(Long.valueOf(notificacionIncidente.getHeladeraId()),notificacionIncidente.getTipoSuscripcion());
     Colaborador colaborador = this.colaboradorRepository.findById(notificacionIncidente.getColaboradorId().longValue());
-    notificador.notificar(incidente,colaboradorMapper.map(colaborador));
+    fachadaTelegram.enviarMensaje(colaborador.getChat_id(),construirMensajeDeAlerta(incidente,colaboradorMapper.map(colaborador)));
+    //notificador.notificar(incidente,colaboradorMapper.map(colaborador));
+  }
+
+  private String construirMensajeDeAlerta(Incidente incidente, ColaboradorDto colaboradorDTO) {
+    return String.format("Se notifica al colaborador %d que la heladera %d sufrió un incidente de tipo %s%n",
+            colaboradorDTO.getId(),
+            incidente.getHeladeraId(),
+            incidente.getTipoAlerta());
   }
 
   public Double puntos(Long colaboradorId,Integer mes, Integer anio) throws NoSuchElementException {
@@ -176,4 +186,9 @@ public class Fachada {
   public void setHeladerasProxy(HeladerasProxy fachadaHeladeras) {
     this.fachadaHeladeras = fachadaHeladeras;
   }
+
+  public void setTelegramNotificacionProxy(TelegramNotificacionProxy telegramNotificacionProxy) {
+    this.fachadaTelegram = telegramNotificacionProxy;
+  }
+
 }

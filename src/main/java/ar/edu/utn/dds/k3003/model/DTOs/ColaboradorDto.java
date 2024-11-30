@@ -18,6 +18,7 @@ import java.util.List;
 @Setter
 public class ColaboradorDto {
     private Long id;
+    private Long chat_id;
     private String nombre;
     private List<FormaDeColaborar> formas;
     private List<DonacionDto> donaciones;
@@ -25,8 +26,10 @@ public class ColaboradorDto {
 
     @JsonCreator
     public ColaboradorDto(@JsonProperty("nombre") String nombre,
+                          @JsonProperty("chat_id") Long chat_id,
                           @JsonProperty("formas") List<TipoFormaColaborar> formas) {
         this.nombre = nombre;
+        this.chat_id = chat_id;
         this.donaciones = new ArrayList<>();
         this.formas = new ArrayList<>();
         this.heladerasReparadas = 0L;
@@ -69,6 +72,7 @@ public class ColaboradorDto {
     public int hashCode() {
         int result = 1;
         result = result * 59 + (getId() == null ? 43 : getId().hashCode());
+        result = result * 59 + (getChat_id() == null ? 43 : getChat_id().hashCode());
         result = result * 59 + (getNombre() == null ? 43 : getNombre().hashCode());
         result = result * 59 + (getFormas() == null ? 43 : getFormas().hashCode());
         result = result * 59 + (getDonaciones() == null ? 43 : getDonaciones().hashCode()); // Calcular hash para donaciones
@@ -77,6 +81,7 @@ public class ColaboradorDto {
 
     public String toString() {
         return "ColaboradorDTO(id=" + getId() +
+                ", chatId=" + getChat_id() +
                 ", nombre=" + getNombre() +
                 ", formas=" + getFormas() +
                 ", donaciones=" + getDonaciones() + ")"; // Incluir donaciones en la representación de cadena

@@ -31,6 +31,7 @@ public class ColaboradorMapper {
 
     ColaboradorDto colaboradorDTO = new ColaboradorDto(
             colaborador.getNombre(),
+            colaborador.getChat_id(),
             tiposFormas
     );
 
